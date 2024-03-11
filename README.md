@@ -9,3 +9,5 @@ The videos are given in format .m4v that is not suitable for OpenCV and other CV
 ```bash
 ./convert_videos.sh
 ```
+
+## Dataset's creation
