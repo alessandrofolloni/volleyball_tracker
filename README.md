@@ -13,10 +13,8 @@ The videos are given in format .m4v that is not suitable for OpenCV and other CV
 ## Object detection
 ### Folder with images from the video
 First of all, I need to perform object detection on the frames of the input video. Obviously, this operation can't be done directly on the video file so I have to extract some frames; this was achieved with some basic operations of OpenCV and Numpy libraries.
-
 From a single video, I extract 1000 random frames (I can fix this parameter later based on my results) and these are inserted inside a new folder.
 
 ### Yolov3
 I choose to perform the detection with Yolov3, a popular pretrained detector that can give good results. 
-
-TO use it, I had to download yolov3.weights, yolov3.cfg and coco.names
+To use it, I had to download yolov3.weights, yolov3.cfg and coco.names
