@@ -16,7 +16,7 @@ First of all, I need to perform object detection on the frames of the input vide
 From a single video, I extract 3000 random frames (I can fix this parameter later based on my results) and these are inserted inside a new folder.
 
 ### Yolov8
-I choose to perform the detection with Yolov3, a popular pretrained detector that can give good results. 
+I choose to perform the detection with Yolov8, a popular pretrained detector that can give good results. 
 To use it, I had to add some installations.
 ```bash
 pip install ultralytics
