@@ -4,42 +4,68 @@ import glob
 import random
 
 
-def extract_random_frames(video_files, total_frames, output_dir):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+class VideoFrameExtractor:
+    def __init__(self, video_dir, output_dir, total_frames):
+        """
+        Initialize the VideoFrameExtractor class with directories and parameters.
 
-    all_frames = []
+        :param video_dir: Directory containing video files.
+        :param output_dir: Directory where extracted frames will be saved.
+        :param total_frames: Total number of random frames to extract.
+        """
+        self.video_dir = video_dir
+        self.output_dir = output_dir
+        self.total_frames = total_frames
 
-    # Estrai tutti i frame dai video
-    for idx, video_file in enumerate(video_files):
-        cap = cv2.VideoCapture(video_file)
-        frame_index = 0
+        # Find videos in the specified directory
+        self.video_files = glob.glob(os.path.join(self.video_dir, '*.mp4'))
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-            all_frames.append((frame, f"video{idx + 1}_frame{frame_index}"))
-            frame_index += 1
-        cap.release()
+        # Ensure the output directory exists
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
 
-    selected_frames = random.sample(all_frames, min(total_frames, len(all_frames)))
+    def extract_random_frames(self):
+        """
+        Extract random frames from videos in the specified directory.
+        """
+        all_frames = []
 
-    # Salva i frame selezionati
-    for count, (frame, frame_id) in enumerate(selected_frames):
-        frame_path = os.path.join(output_dir, f"{frame_id}_{count}.jpg")
-        cv2.imwrite(frame_path, frame)
+        # Extract all frames from the videos
+        for idx, video_file in enumerate(self.video_files):
+            cap = cv2.VideoCapture(video_file)
+            frame_index = 0
 
-    cv2.destroyAllWindows()
-    print(f"Frame extraction completed. Total frames saved: {len(selected_frames)}")
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                all_frames.append((frame, f"video{idx + 1}_frame{frame_index}"))
+                frame_index += 1
+            cap.release()
 
+        # Select random frames
+        selected_frames = random.sample(all_frames, min(self.total_frames, len(all_frames)))
 
-# Directories
-video_dir = '/Users/alessandrofolloni/Desktop/Unibo/PW ML4CV/videos/Converted'
-output_dir = '/Users/alessandrofolloni/Desktop/Unibo/PW ML4CV/videos/frames_extracted'
+        # Save the selected frames
+        self._save_frames(selected_frames)
 
-# Find videos inside video_dir
-video_files = glob.glob(os.path.join(video_dir, '*.mp4'))
-total_frames = 1000
+        cv2.destroyAllWindows()
+        print(f"Frame extraction completed. Total frames saved: {len(selected_frames)}")
 
-extract_random_frames(video_files, total_frames, output_dir)
+    def _save_frames(self, selected_frames):
+        """
+        Save selected frames to the output directory.
+
+        :param selected_frames: List of tuples containing frames and their corresponding IDs.
+        """
+        for count, (frame, frame_id) in enumerate(selected_frames):
+            frame_path = os.path.join(self.output_dir, f"{frame_id}_{count}.jpg")
+            cv2.imwrite(frame_path, frame)
+
+    def get_video_files(self):
+        """
+        Get the list of video files in the video directory.
+
+        :return: List of video file paths.
+        """
+        return self.video_files
