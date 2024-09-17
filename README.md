@@ -7,7 +7,7 @@ The aim is to build an AI system able to track the volleyball players inside vid
 ## Project's details
 The videos are given in format .m4v that is not suitable for OpenCV and other CV operations, so it was necessary to convert those in .mp4 thanks to the convert_videos.sh inside utils' folder.
 ```bash
-./convert_videos.sh
+./mvi_to_mp4.sh
 ```
 
 ## Object detection
