@@ -28,39 +28,61 @@ class VideoFrameExtractor:
         """
         Extract random frames from videos in the specified directory.
         """
-        all_frames = []
-
-        # Extract all frames from the videos
-        for idx, video_file in enumerate(self.video_files):
+        # Get total number of frames for each video
+        total_frames_per_video = []
+        for video_file in self.video_files:
             cap = cv2.VideoCapture(video_file)
-            frame_index = 0
-
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                all_frames.append((frame, f"video{idx + 1}_frame{frame_index}"))
-                frame_index += 1
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            total_frames_per_video.append(total_frames)
             cap.release()
 
-        # Select random frames
-        selected_frames = random.sample(all_frames, min(self.total_frames, len(all_frames)))
+        # Compute cumulative frames
+        cumulative_frames = []
+        total_frames_cumulative = 0
+        for frames in total_frames_per_video:
+            total_frames_cumulative += frames
+            cumulative_frames.append(total_frames_cumulative)
 
-        # Save the selected frames
-        self._save_frames(selected_frames)
+        total_frames_all_videos = total_frames_cumulative
+
+        # Generate random frame indices
+        total_frames_to_extract = min(self.total_frames, total_frames_all_videos)
+        random_frame_indices = sorted(random.sample(range(total_frames_all_videos), total_frames_to_extract))
+
+        # Map frame indices to videos
+        frames_per_video_to_extract = {}
+        video_start_frame = 0
+        for idx, video_file in enumerate(self.video_files):
+            video_frames = total_frames_per_video[idx]
+            video_end_frame = video_start_frame + video_frames
+
+            # Get frame indices for this video
+            frames_in_this_video = [f - video_start_frame for f in random_frame_indices
+                                    if video_start_frame <= f < video_end_frame]
+
+            if frames_in_this_video:
+                frames_per_video_to_extract[video_file] = frames_in_this_video
+
+            video_start_frame = video_end_frame
+
+        # Now extract frames
+        frame_count = 0
+        for video_file, frame_indices in frames_per_video_to_extract.items():
+            cap = cv2.VideoCapture(video_file)
+            for frame_idx in frame_indices:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+                ret, frame = cap.read()
+                if ret:
+                    frame_id = f"{os.path.basename(video_file)}_frame{frame_idx}"
+                    frame_path = os.path.join(self.output_dir, f"{frame_id}_{frame_count}.jpg")
+                    cv2.imwrite(frame_path, frame)
+                    frame_count += 1
+                else:
+                    print(f"Failed to read frame {frame_idx} from {video_file}")
+            cap.release()
 
         cv2.destroyAllWindows()
-        print(f"Frame extraction completed. Total frames saved: {len(selected_frames)}")
-
-    def _save_frames(self, selected_frames):
-        """
-        Save selected frames to the output directory.
-
-        :param selected_frames: List of tuples containing frames and their corresponding IDs.
-        """
-        for count, (frame, frame_id) in enumerate(selected_frames):
-            frame_path = os.path.join(self.output_dir, f"{frame_id}_{count}.jpg")
-            cv2.imwrite(frame_path, frame)
+        print(f"Frame extraction completed. Total frames saved: {frame_count}")
 
     def get_video_files(self):
         """
