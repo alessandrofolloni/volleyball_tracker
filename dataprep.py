@@ -1,8 +1,8 @@
 from utils.frames_extraction import VideoFrameExtractor
 from utils.frame_review import ImageReviewer
 
-video_dir = '/Users/alessandrofolloni/Desktop/Unibo/PW ML4CV/videos/Converted'
-output_dir = '/Users/alessandrofolloni/Desktop/Unibo/PW ML4CV/videos/frames_extracted'
+video_dir = '/Users/alessandrofolloni/PycharmProjects/volleyball_tracker/videos/Converted'
+output_dir = '/Users/alessandrofolloni/PycharmProjects/volleyball_tracker/videos/frames_extracted'
 total_frames = 1000
 
 # Extract random frames
