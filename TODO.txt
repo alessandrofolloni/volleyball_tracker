@@ -1,0 +1,12 @@
+wandb login
+
+run training
+python train_yolov8.py --data /path/to/your/data.yaml --model yolov8n.pt --epochs 50 --imgsz 640
+
+tracking script
+python track_players.py --video /path/to/your/video.mp4
+
+
+
+
+Implement early stopping if validation loss starts to increase to prevent overfitting.

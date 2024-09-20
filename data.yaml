@@ -1,0 +1,7 @@
+path: /path/to/your/dataset  # Root directory
+train: images/train  # Relative path to train images
+val: images/val  # Relative path to val images
+test: images/test  # Relative path to test images
+
+names:
+  0: player  # Class names
