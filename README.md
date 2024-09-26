@@ -11,7 +11,7 @@ The videos are given in format .m4v that is not suitable for OpenCV and other CV
 ```bash
 ./convert_videos.sh
 ```
-First of all, I need to perform object detection on the frames of the input video. Obviously, this operation can't be done directly on the video files so I have to extract some frames; this was achieved with some basic operations.
+First of all, I need to perform object detection on the frames of the input video. Obviously, this operation can't be done directly on the video files, so I have to extract some frames; this was achieved with some basic operations.
 From all the videos, I extract 1000 random frames (I can fix this parameter later based on my results) and these are inserted inside a new folder and subsequently into 3 different folders. 
 The frames must be annotated manually before being used to finetune the YOLO model. This will be done with app.roboflow.com that is a popular tool to annotate datasets.
 
@@ -20,5 +20,4 @@ I choose to perform the detection with YOLOv8, a popular pretrained detector tha
 To use it, I need some installations.
 ```bash
 pip install ultralytics
-pip install tqdm --upgrade
 ```

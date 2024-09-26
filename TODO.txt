@@ -1,7 +1,8 @@
-wandb login
+pip install tensorflow-macos
+pip install tensorflow-metal
 
 run training
-python train_yolov8.py --data /path/to/your/data.yaml --model yolov8n.pt --epochs 50 --imgsz 640
+python train_yolov8.py --data /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/data.yaml --model yolov8n.pt --epochs 50 --imgsz 640
 
 tracking script
 python track_players.py --video /path/to/your/video.mp4

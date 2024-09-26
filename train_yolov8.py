@@ -1,5 +1,6 @@
 import argparse
 from ultralytics import YOLO
+from wandb.integration.keras import WandbCallback
 
 
 def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640, project_name='YOLOv8-Training'):
@@ -13,10 +14,6 @@ def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
         imgsz (int): Image size for training.
         project_name (str): Name of the wandb project.
     """
-    # Import wandb and initialize
-    import wandb
-    wandb.init(project=project_name)
-
     # Load the model
     model = YOLO(model_name)
 
@@ -31,7 +28,7 @@ def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
         exist_ok=True,
         verbose=True,
         # Enable wandb logging
-        callbacks=[wandb.WandbCallback()]
+        callbacks=[WandbCallback(project=project_name)]
     )
 
     # Evaluate the model on the test set
@@ -45,12 +42,6 @@ def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
         plots=True,
         verbose=True
     )
-
-    # Log evaluation metrics to wandb
-    wandb.log(metrics)
-
-    # Finish wandb run
-    wandb.finish()
 
     # Print the evaluation metrics
     print("\nEvaluation Metrics on Test Set:")
