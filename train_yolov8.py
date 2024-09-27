@@ -1,34 +1,25 @@
 import argparse
 from ultralytics import YOLO
-from wandb.integration.keras import WandbCallback
 
 
-def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640, project_name='YOLOv8-Training'):
+def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
+                       project_name='volleyball_tracker_training'):
     """
     Trains YOLOv8 on a custom dataset and evaluates on the test set.
-
-    Args:
-        data_yaml (str): Path to the data YAML file.
-        model_name (str): Pre-trained YOLOv8 model to start from.
-        epochs (int): Number of training epochs.
-        imgsz (int): Image size for training.
-        project_name (str): Name of the wandb project.
     """
     # Load the model
     model = YOLO(model_name)
 
-    # Train the model with wandb integration
+    # Train the model (wandb integration is automatic)
     model.train(
         data=data_yaml,
         epochs=epochs,
         imgsz=imgsz,
-        val=True,  # Perform validation
-        project='runs/detect',
+        val=True,
+        project=project_name,
         name='train',
         exist_ok=True,
-        verbose=True,
-        # Enable wandb logging
-        callbacks=[WandbCallback(project=project_name)]
+        verbose=True
     )
 
     # Evaluate the model on the test set
@@ -45,8 +36,16 @@ def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
 
     # Print the evaluation metrics
     print("\nEvaluation Metrics on Test Set:")
-    for k, v in metrics.items():
-        print(f"{k}: {v}")
+    # Option 1: Use results_dict
+    # for k, v in metrics.results_dict.items():
+    # print(f"{k}: {v}")
+
+    # Option 2: Use metrics.metrics
+    # for k, v in metrics.metrics.items():
+    #     print(f"{k}: {v}")
+
+    # Option 3: Use print_results method
+    metrics.print_results()
 
 
 if __name__ == "__main__":
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default='yolov8n.pt', help='Pre-trained model to use')
     parser.add_argument('--epochs', type=int, default=50, help='Number of epochs')
     parser.add_argument('--imgsz', type=int, default=640, help='Image size')
-    parser.add_argument('--project', type=str, default='YOLOv8-Training', help='wandb project name')
+    parser.add_argument('--project', type=str, default='volleyball_tracker_training', help='Project name')
 
     args = parser.parse_args()
 

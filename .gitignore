@@ -2,3 +2,4 @@
 .venv/
 videos/
 dataset/
+wandb/
