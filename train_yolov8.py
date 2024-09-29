@@ -1,15 +1,20 @@
 import argparse
 from pathlib import Path
-import cv2
 from ultralytics import YOLO
 import wandb
 
 
-def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
+def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=20, imgsz=640,
                        project_name='volleyball_tracker_training'):
     """
     Trains YOLOv8 on a custom dataset and evaluates on the test set.
     """
+    # Ensure wandb is initialized before training
+    experiment = f"train_epochs{epochs}_model{model_name}"
+
+    if wandb.run is None:
+        wandb.init(project=project_name, name=experiment, resume='allow')
+
     # Load the model
     model = YOLO(model_name)
 
@@ -20,7 +25,7 @@ def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
         imgsz=imgsz,
         val=True,
         project=project_name,
-        name='train 3',
+        name=experiment,
         exist_ok=True,
         verbose=True
     )
@@ -37,77 +42,84 @@ def train_and_evaluate(data_yaml, model_name='yolov8n.pt', epochs=50, imgsz=640,
         verbose=True
     )
 
-    # Log images comparing predictions and ground truth
-    log_comparison_images(model, data_yaml, metrics.save_dir)
+    # Save metrics to a text file
+    save_metrics_to_file(metrics, metrics.save_dir, experiment)
+
+    # Finish wandb run
+    wandb.finish()
 
 
-def log_comparison_images(model, data_yaml, save_dir):
-    # Load class names from data.yaml
-    import yaml
-    with open(data_yaml, 'r') as f:
-        data = yaml.safe_load(f)
-    class_names = data.get('names', [])
+def save_metrics_to_file(metrics, save_dir, experiment):
+    """
+    Saves the evaluation metrics to a text file.
 
-    # Directory paths
-    images_dir = data['test']
-    labels_dir = images_dir.replace('images', 'labels')
-    predictions_dir = save_dir / 'labels'
+    Args:
+        experiment (str): experiment name.
+        metrics (DetMetrics): Metrics object returned by model.val().
+        save_dir (str or Path): Directory where the metrics file will be saved.
+    """
+    name = f'metrics_report{experiment}.txt'
+    metrics_file = Path(save_dir) / name
+    with open(metrics_file, 'w') as f:
+        f.write("Classification Report\n")
+        f.write("=====================\n\n")
 
-    # Get list of images
-    image_paths = [p for p in Path(images_dir).glob('**/*') if p.suffix.lower() in ['.jpg', '.jpeg', '.png']]
+        # Overall Metrics
+        f.write(f"Metrics for the model:\n")
+        f.write(f"  - Model name: {experiment}\n\n")
+        f.write("Overall Performance:\n")
 
-    comparison_images = []
+        # Access metrics via attributes, not methods
+        f.write(f"  - Precision (P): {metrics.box.mp:.4f}\n")
+        f.write(f"  - Recall (R): {metrics.box.mr:.4f}\n")
+        f.write(f"  - Mean Average Precision @ IoU=0.5 (mAP@0.5): {metrics.box.map50:.4f}\n")
+        f.write(f"  - Mean Average Precision @ IoU=0.5:0.95 (mAP@0.5:0.95): {metrics.box.map:.4f}\n\n")
 
-    for img_path in image_paths:
-        img = cv2.imread(str(img_path))
-        h, w, _ = img.shape
+        # Losses
+        f.write("Losses:\n")
+        if hasattr(metrics, 'box_loss'):
+            f.write(f"  - Box Loss: {metrics.box_loss:.4f}\n")
+        else:
+            f.write("  - Box Loss: N/A\n")
 
-        # Draw ground truth boxes
-        label_path = Path(labels_dir) / (img_path.stem + '.txt')
-        if label_path.exists():
-            with open(label_path, 'r') as f:
-                for line in f:
-                    class_id, x_center, y_center, width, height = map(float, line.strip().split())
-                    draw_box(img, x_center, y_center, width, height, w, h, color=(0, 255, 0),
-                             label=class_names[int(class_id)])
+        if hasattr(metrics, 'cls_loss'):
+            f.write(f"  - Classification Loss: {metrics.cls_loss:.4f}\n")
+        else:
+            f.write("  - Classification Loss: N/A\n")
 
-        # Draw predicted boxes
-        pred_path = Path(predictions_dir) / (img_path.stem + '.txt')
-        if pred_path.exists():
-            with open(pred_path, 'r') as f:
-                for line in f:
-                    class_id, x_center, y_center, width, height, conf = map(float, line.strip().split())
-                    draw_box(img, x_center, y_center, width, height, w, h, color=(0, 0, 255),
-                             label=class_names[int(class_id)], conf=conf)
+        if hasattr(metrics, 'dfl_loss'):
+            f.write(f"  - DFL Loss: {metrics.dfl_loss:.4f}\n")
+        else:
+            f.write("  - DFL Loss: N/A\n")
+        f.write("\n")
 
-        # Convert BGR to RGB for Wandb
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # Per-Class Metrics
+        f.write("Per-Class Performance:\n")
+        if metrics.box.maps is not None and hasattr(metrics.box, 'ap_class_index'):
+            # Get class indices and names
+            ap_class_indices = metrics.box.ap_class_index  # Indices of classes
+            for i, class_idx in enumerate(ap_class_indices):
+                class_name = metrics.names[class_idx]
+                # Get per-class precision, recall, map50, map
+                p, r, ap50, ap = metrics.box.class_result(i)
+                f.write(f"Class '{class_name}':\n")
+                f.write(f"  - Precision: {p:.4f}\n")
+                f.write(f"  - Recall: {r:.4f}\n")
+                f.write(f"  - mAP@0.5: {ap50:.4f}\n")
+                f.write(f"  - mAP@0.5:0.95: {ap:.4f}\n\n")
+        else:
+            f.write("Per-class metrics are not available.\n")
 
-        # Log the image
-        comparison_images.append(wandb.Image(img_rgb, caption=img_path.name))
-
-    # Log to Wandb
-    wandb.log({"Predictions vs Ground Truth": comparison_images})
-
-
-def draw_box(img, x_center, y_center, width, height, img_w, img_h, color, label='', conf=None):
-    x1 = int((x_center - width / 2) * img_w)
-    y1 = int((y_center - height / 2) * img_h)
-    x2 = int((x_center + width / 2) * img_w)
-    y2 = int((y_center + height / 2) * img_h)
-    cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
-    label_text = label
-    if conf is not None:
-        label_text += f' {conf:.2f}'
-    if label_text:
-        cv2.putText(img, label_text, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+    print(f"Metrics report saved to {metrics_file}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train and evaluate YOLOv8 on a custom dataset.")
-    parser.add_argument('--data', type=str, required=True, help='Path to data.yaml')
+    parser.add_argument('--data', type=str,
+                        default="/Users/alessandrofolloni/PycharmProjects/volleyball_tracker/data.yaml",
+                        help='Path to data.yaml')
     parser.add_argument('--model', type=str, default='yolov8n.pt', help='Pre-trained model to use')
-    parser.add_argument('--epochs', type=int, default=50, help='Number of epochs')
+    parser.add_argument('--epochs', type=int, default=20, help='Number of epochs')
     parser.add_argument('--imgsz', type=int, default=640, help='Image size')
     parser.add_argument('--project', type=str, default='volleyball_tracker_training', help='Project name')
 

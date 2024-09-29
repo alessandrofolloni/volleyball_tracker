@@ -1,5 +1,5 @@
 path: /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/dataset/first49  # Root directory
-train: /train/images  # Relative path to train images
+train: train/images  # Relative path to train images
 val: valid/images  # Relative path to val images
 test: test/images  # Relative path to test images
 

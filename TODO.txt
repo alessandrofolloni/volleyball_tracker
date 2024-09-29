@@ -1,11 +1,8 @@
-pip install tensorflow-macos
-pip install tensorflow-metal
-
 run training
 python train_yolov8.py --data /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/data.yaml --model yolov8n.pt --epochs 50 --imgsz 640
 
 tracking script
-python track_players.py --video /path/to/your/video.mp4
+python track_players.py --video /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/videos/Converted/EvertonvsBaganzola.mp4 --model /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/volleyball_tracker_training/train2.0/weights/best.pt
 
 
 

@@ -1,11 +1,16 @@
 import argparse
+import os
+import random
 from ultralytics import YOLO
 
 
-def track_players(video_path, model_path='runs/detect/train/weights/best.pt', output_dir='runs/track/', imgsz=640,
-                  tracker_cfg='bytetrack.yaml'):
+def track_players(video_path, model_path='volleyball_tracker_training/train2.0/weights/best.pt',
+                  output_dir='runs/track/', imgsz=640,
+                  tracker_cfg='/Users/alessandrofolloni/PycharmProjects'
+                              '/volleyball_tracker/.venv/lib/python3.10/site-packages'
+                              '/ultralytics/cfg/trackers/bytetrack.yaml'):
     """
-    Performs player tracking on a video using a trained YOLOv8 model.
+    Performs player tracking on a video using a fine-tuned YOLOv8 model.
 
     Args:
         video_path (str): Path to the input video.
@@ -32,8 +37,11 @@ def track_players(video_path, model_path='runs/detect/train/weights/best.pt', ou
 
 
 if __name__ == "__main__":
+    file = random.choice(os.listdir("/Users/alessandrofolloni/PycharmProjects"
+                                    "/volleyball_tracker/videos/Converted_short"))
+
     parser = argparse.ArgumentParser(description="Track players in a video using YOLOv8.")
-    parser.add_argument('--video', type=str, required=True, help='Path to input video')
+    parser.add_argument('--video', type=str, default=file, help='Path to input video')
     parser.add_argument('--model', type=str, default='runs/detect/train/weights/best.pt', help='Path to trained model')
     parser.add_argument('--output', type=str, default='runs/track/', help='Output directory')
     parser.add_argument('--imgsz', type=int, default=640, help='Image size')
