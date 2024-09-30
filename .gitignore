@@ -1,10 +1,10 @@
 .idea/
 .venv/
-videos/
-dataset/
+/videos/
 wandb/
 volleyball_tracker_training/
 yolov8n.pt
 yolov8s.pt
 yolov8b.pt
 runs/
+/dataset/
