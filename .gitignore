@@ -2,10 +2,8 @@
 .venv/
 /videos/
 wandb/
-yolov8m.pt
+pretrained_yolo/
 volleyball_tracker_training/
-yolov8n.pt
-yolov8s.pt
 runs/
 /dataset/
 /dataset/first49/
