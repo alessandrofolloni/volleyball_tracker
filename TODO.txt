@@ -5,6 +5,4 @@ tracking script
 python track_players.py --video /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/videos/Converted/EvertonvsBaganzola.mp4 --model /Users/alessandrofolloni/PycharmProjects/volleyball_tracker/volleyball_tracker_training/train2.0/weights/best.pt
 
 
-
-
 Implement early stopping if validation loss starts to increase to prevent overfitting.
