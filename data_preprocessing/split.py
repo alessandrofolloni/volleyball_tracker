@@ -2,7 +2,7 @@ import os
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 
-def split_video(video_path, output_folder, max_duration=600):
+def split_video(video_path, output_folder, max_duration=120):
     """
     Splits the video at video_path into multiple segments of max_duration seconds.
 
@@ -64,11 +64,11 @@ def split_videos_in_folder(input_folder, output_folder, max_duration=600):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Split videos in a folder into segments of maximum 10 minutes.")
+    parser = argparse.ArgumentParser(description="Split videos in a folder into segments of maximum given minutes.")
     parser.add_argument('--input_folder', type=str, required=True, help='Path to the folder containing input videos.')
     parser.add_argument('--output_folder', type=str, required=True,
                         help='Path to the folder where output videos will be saved.')
-    parser.add_argument('--max_duration', type=int, default=300,
+    parser.add_argument('--max_duration', type=int, default=120,
                         help='Maximum duration (in seconds) of each video segment.')
 
     args = parser.parse_args()

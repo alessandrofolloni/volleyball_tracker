@@ -1,0 +1,4 @@
+moviepy==2.0.0
+pandas==2.2.3
+ultralytics==8.3.36
+wandb==0.18.7
